@@ -5,6 +5,7 @@ import os
 import argparse
 import argcomplete
 import cv2
+import shutil
 from collections import OrderedDict
 
 
@@ -44,17 +45,11 @@ def run(args):
             if len(all_images[path]) != len(images_base):
                 raise ValueError("image counts don't match.")
 
-    if args.remove_output and os.path.exists(args.out):
-        try:
-            os.rmdir(args.out)
-            os.unlink(args.out)
-        except (OSError, IOError):
-            pass
+    if args.remove_output and os.path.isdir(args.out):
+        shutil.rmtree(args.out, ignore_errors=True)
 
-    if not os.path.exists(args.out):
+    if not os.path.isdir(args.out):
         os.mkdir(args.out)
-    else:
-        raise ValueError("invalid output.")
 
     zipped = tuple(zip(*all_images.values()))
 
@@ -72,7 +67,7 @@ def run(args):
             del image_blend
             print(".", end="")
 
-        cv2.imwrite(os.path.join(args.out, f"{image_index:04}.jpg"), image)
+        cv2.imwrite(os.path.join(args.out, os.path.basename(image_base_path)), image)
         del image
 
         print("done.")
